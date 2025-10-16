@@ -1,36 +1,180 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QSC Reflect Dashboard
 
-## Getting Started
+A modern, responsive dashboard for monitoring QSC Reflect systems and cores built with Next.js and Tailwind CSS.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Real-time Monitoring**: Auto-refreshing dashboard that polls the QSC Reflect API every 30 seconds
+- **Core Management**: View all Q-SYS cores with status, uptime, firmware versions, and site information
+- **System Overview**: Monitor system health, component status, and design information
+- **Statistics Dashboard**: Quick overview with health metrics and status summaries
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Professional UI**: Clean, modern interface built with Tailwind CSS
+
+## API Endpoints
+
+The dashboard connects to the QSC Reflect API through Next.js API routes to avoid CORS restrictions:
+
+- **Local Proxy Routes**:
+  - `GET /api/cores` - Proxies requests to QSC Reflect `/cores` endpoint
+  - `GET /api/systems` - Proxies requests to QSC Reflect `/systems` endpoint
+
+- **External QSC Reflect API**:
+  - **Cores**: `GET /cores` - Retrieves all Q-SYS cores with their status and configuration
+  - **Systems**: `GET /systems` - Retrieves all systems with their health status and component information
+
+The Next.js API routes act as a proxy to bypass CORS restrictions that prevent direct browser calls to the QSC Reflect API.
+
+## Setup
+
+1. **Clone the repository** (or create the project):
+   ```bash
+   npx create-next-app@latest reflect-dashboard-example --typescript --tailwind --eslint --app
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   - Copy `.env.example` to `.env.local`
+   - Add your QSC Reflect Bearer token:
+   ```env
+   NEXT_PUBLIC_REFLECT_BASE_URL=https://reflect.qsc.com/api/public/v0
+   REFLECT_BEARER_TOKEN=your_actual_bearer_token_here
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Open the dashboard**:
+   Navigate to [http://localhost:3000](http://localhost:3000) in your browser
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/
+│   │   ├── cores/route.ts    # API proxy for cores endpoint
+│   │   └── systems/route.ts  # API proxy for systems endpoint
+│   ├── globals.css          # Global styles and Tailwind imports
+│   ├── layout.tsx           # App layout wrapper
+│   └── page.tsx             # Main dashboard page
+├── components/
+│   ├── CoresList.tsx        # Component for displaying cores
+│   ├── SystemsList.tsx      # Component for displaying systems
+│   └── DashboardStats.tsx   # Statistics overview component
+├── hooks/
+│   └── useReflectData.ts    # Custom hook for API polling
+├── lib/
+│   └── api.ts               # API service and type definitions
+├── .env.local               # Environment variables (create from .env.example)
+└── .env.example             # Example environment configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `NEXT_PUBLIC_REFLECT_BASE_URL`: The base URL for the QSC Reflect API (default: https://reflect.qsc.com/api/public/v0)
+- `REFLECT_BEARER_TOKEN`: Your QSC Reflect API Bearer token (required)
 
-## Learn More
+### Polling Interval
 
-To learn more about Next.js, take a look at the following resources:
+The dashboard automatically refreshes every 30 seconds. You can modify this in the `useReflectData` hook by changing the `pollingInterval` parameter in `app/page.tsx`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```typescript
+const { cores, systems, loading, error, lastUpdated, refresh } = useReflectData(60000); // 60 seconds
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data Models
 
-## Deploy on Vercel
+### Core
+Each core object contains:
+- Basic info (id, name, model, serial number)
+- Status (running, offline, idle)
+- Firmware version and uptime
+- Site information
+- Access mode and redundancy configuration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### System
+Each system object contains:
+- System identification and design information
+- Status with component health breakdown
+- Core association
+- Platform and uptime information
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features in Detail
+
+### Dashboard Statistics
+- Total cores and systems count
+- Status breakdown (running, offline, idle, initializing)
+- Component health overview
+- Overall system health percentage
+
+### Core Monitoring
+- Visual status indicators with color coding
+- Uptime formatting (days, hours, minutes)
+- Serial number and firmware tracking
+- Site and redundancy information
+
+### System Health
+- Component status breakdown (normal, warning, fault, unknown)
+- Design and platform information
+- Real-time status monitoring
+
+### Auto-refresh
+- Configurable polling interval
+- Visual indicators for refresh status
+- Manual refresh capability
+- Last updated timestamp
+
+## Technology Stack
+
+- **Next.js 14+**: React framework with App Router
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first CSS framework
+- **React Hooks**: Custom hooks for state management
+- **QSC Reflect API**: Real-time Q-SYS monitoring data
+
+## Browser Support
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Security
+
+- Bearer token authentication for API access
+- Environment variables for sensitive data
+- HTTPS-only communication with QSC Reflect API
+
+## Development
+
+### Adding New Features
+
+1. Create new components in the `components/` directory
+2. Add API service functions in `lib/api.ts`
+3. Update TypeScript types as needed
+4. Add appropriate styling with Tailwind CSS
+
+### Error Handling
+
+The dashboard includes comprehensive error handling:
+- API request failures are displayed to users
+- Loading states during data fetching
+- Fallback UI for empty data states
+
+## License
+
+This project is provided as an example implementation. Check QSC's API terms of service for usage guidelines.
+
+## Support
+
+For issues related to:
+- **QSC Reflect API**: Contact QSC support
+- **Dashboard Code**: Create an issue in this repository
